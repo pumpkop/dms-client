@@ -1,0 +1,25 @@
+/*@tailwind base;*/
+
+/*@layer base {*/
+/*    body {*/
+/*        font-family: "Fira Code";*/
+/*    }*/
+
+/*    .layout-center {*/
+/*        position: absolute;*/
+/*        top: 50%;*/
+/*        left: 50%;*/
+/*        transform: translate(-50%, -50%);*/
+/*    }*/
+
+/*    input[type=text],input[type=password]{*/
+/*        outline: none;*/
+/*    }*/
+/*    input[type=text]:focus,input[type=password]:focus{*/
+/*        outline: none;*/
+/*        border-color: inherit;*/
+/*    }*/
+/*}*/
+
+/*@tailwind components;*/
+/*@tailwind utilities;*/
