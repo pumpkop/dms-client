@@ -2,8 +2,8 @@ import {isRouteErrorResponse, useRouteError} from "react-router-dom"
 import styled from "styled-components"
 
 interface ErrorProps {
-    code? : number,
-    message? : string
+    code?: number,
+    message?: string
 }
 
 const Wrapper = styled.div`
@@ -15,14 +15,14 @@ const Wrapper = styled.div`
 `;
 
 
-export function ShowError({ code = 404, message = '페이지를 찾을 수 없습니다'} : ErrorProps) {
+export function ShowError({code = 404, message = '페이지를 찾을 수 없습니다'}: ErrorProps) {
     const error = useRouteError()
-    let c : number = code
-    let m : string = message
+    let c: number = code
+    let m: string = message
     console.error(error)
 
-    if(error){
-        if(isRouteErrorResponse(error)){
+    if (error) {
+        if (isRouteErrorResponse(error)) {
             c = error.status
             m = error.data
         } else if (error instanceof Error) {

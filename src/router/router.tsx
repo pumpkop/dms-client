@@ -9,7 +9,8 @@ import Join from "../components/Join.tsx"
 
 const router = createBrowserRouter([
     {
-        path: '/',
+        
+        path:  '/',
         element: <ProtectedRoute><Layout/></ProtectedRoute>,
         children: [
             {
