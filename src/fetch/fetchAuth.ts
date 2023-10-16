@@ -1,13 +1,11 @@
-export const authStateFetch = async (token: string) => {
+export const fetchAuthState = async (token: string) => {
   return await fetch("http://localhost:15004/api/auth/status", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-  }).then((response) => {
-    return response.json();
-  });
+  }).then((response) => response.json());
 };
 
 interface ILoginInfo {
@@ -16,13 +14,17 @@ interface ILoginInfo {
   password: string;
 }
 
-export const authLoginFetch = async ({ code, id, password }: ILoginInfo) => {
+export const fetchAuthLogin = async ({ code, id, password }: ILoginInfo) => {
   return await fetch(`http://localhost:15004/api/auth/login/${code}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ code, id, password }),
+    body: JSON.stringify({
+      managerCode: code,
+      managerId: id,
+      managerPw: password,
+    }),
   }).then((response) => {
     return response.json();
   });
@@ -36,7 +38,7 @@ interface IJoinInfo {
   email: string;
 }
 
-export const authJoinFetch = async ({
+export const fetchAuthJoin = async ({
   code,
   id,
   password,
