@@ -58,14 +58,6 @@ const SubmitButton = styled.label`
 `;
 
 export default function Join() {
-  const { removeToken } = tokenStore((state) => ({
-    removeToken: state.removeToken,
-  }));
-
-  useEffect(() => {
-    removeToken();
-  }, []);
-
   const [niceAuth] = useNiceAuth({ val: "", phone: "", name: "", birth: "" });
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -78,6 +70,9 @@ export default function Join() {
   const [remember1, setRemember1] = useState(false);
   const [remember2, setRemember2] = useState(false);
   const [error, setError] = useState("");
+  const { changeToken } = tokenStore((state) => ({
+    changeToken: state.changeToken,
+  }));
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {
@@ -144,12 +139,12 @@ export default function Join() {
     }
     try {
       setIsLoading(true);
-      useQuery(
+      const { isLoading, isError, data, error } = useQuery(
         ["authLogin", id],
         () => fetchAuthJoin({ code, id, password, phone, email }),
         {
           retry: false,
-          enabled: false,
+          enabled: !!id,
         },
       );
 
@@ -163,6 +158,10 @@ export default function Join() {
     }
     console.log(email, password);
   };
+
+  useEffect(() => {
+    changeToken("");
+  }, []);
 
   // removeToken();
   return (

@@ -4,7 +4,8 @@ import { devtools, persist } from "zustand/middleware";
 interface tokenStoreProps {
   token: string;
   isLogin: boolean;
-  changeLoginState: () => void;
+  setIsLogin: (login: boolean) => void;
+  toggleLogin: () => void;
   changeToken: (t: string) => void;
 }
 
@@ -14,11 +15,12 @@ export const tokenStore = create<tokenStoreProps>()(
       (set) => ({
         token: "",
         isLogin: false,
-        changeLoginState: () => set((state) => ({ isLogin: !state.isLogin })),
+        setIsLogin: (login: boolean) => set(() => ({ isLogin: login })),
+        toggleLogin: () => set((state) => ({ isLogin: !state.isLogin })),
         changeToken: (t: string) => set(() => ({ token: t })),
       }),
       {
-        name: "token-storage",
+        name: "DealerToken",
       },
     ),
   ),

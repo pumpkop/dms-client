@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useQuery } from "react-query";
 import { fetchAuthState } from "../fetch/fetchAuth.ts";
 import { tokenStore } from "../store/tokenStore.ts";
@@ -9,46 +9,35 @@ interface IProps {
   children: React.ReactNode;
 }
 
-// interface IResponse {
-//   code: number;
-//   message: string;
-// }
-//
-// interface IAuthState {
-//   isLoading: boolean;
-//   isError: boolean;
-//   error: IResponse;
-//   data: object;
-// }
-
 export default function ProtectedRoute({ children }: IProps) {
   const navigate = useNavigate();
-  const { token, changeToken, isLogin, changeLoginState } = tokenStore(
-    (state) => ({
-      token: state.token,
-      changeToken: state.changeToken,
-      isLogin: state.isLogin,
-      changeLoginState: state.changeLoginState,
-    }),
-  );
-  //fetch
-  if (!token) navigate("/login");
 
+  //token 값 불러오기
+  const { token, changeToken, isLogin, setIsLogin } = tokenStore((state) => ({
+    token: state.token,
+    changeToken: state.changeToken,
+    isLogin: state.isLogin,
+    setIsLogin: state.setIsLogin,
+  }));
   const { isLoading, isError, data } = useQuery(
-    ["authState", "test57"],
-    () =>
-      fetchAuthState(
-        "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ0ZXN0NTciLCJhdXRoIjoiUk9MRV9TT0ZUQ0lUWSxST0xFX1VTRVIiLCJleHAiOjE2OTc0NDUyMzZ9.gfdofnafP-SKKF26mTatn2MjoAcpujxh4HKZ-vLPdCe11mSXgeUFUdVrjd3KIlGNiUAHsCytM4dtX4f7LFx16zCFoAIU1dY-wxfuEwKHgZq-_1_-VBcolhpQyXazvrYOC7IFIIAFtqyS55gudsZsQGxSl3x7lTtLyu1TI7bLQoL3MG-RB6Z6cA4EICuuskto5um2dzBXQLR3T8dykklYca-RAKpvsnWSAD5LN68v2rNPV3ySpHqvHMG2YJ-cfRZuOK8FBgr70OWTddlx1B9ZBvkSbCPpAhxPd0YsxCKT5JPBVEm07zWagsX-hGSV-jbIORTGLHj1ISjs0XA-uhw-YA",
-      ),
+    ["authState", token],
+    () => fetchAuthState(token),
     {
       retry: false,
-      enabled: false,
+      enabled: true,
     },
   );
-  if (isError) {
-    changeToken("");
-    navigate("/login");
-  }
+  useEffect(() => {
+    console.log("data:", data);
+    console.log("isLoading : ", isLoading);
+    //로그인 정상 상태가 아닐떄
+    if (isError || token === "") {
+      console.log(isError);
+      changeToken(""); //토큰 삭제
+      isLogin ? setIsLogin(false) : null; //로그인 상태 해제
+      // navigate("/login"); //로그인 페이지 이동
+    }
+  }, []);
 
-  return <>{isLoading ? <Loading /> : children}</>;
+  return <>{isLoading || isError || token === "" ? <Loading /> : children}</>;
 }

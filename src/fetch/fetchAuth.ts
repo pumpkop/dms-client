@@ -1,4 +1,5 @@
 export const fetchAuthState = async (token: string) => {
+  if (token === "") return;
   return await fetch("http://localhost:15004/api/auth/status", {
     method: "GET",
     headers: {
@@ -15,7 +16,7 @@ interface ILoginInfo {
 }
 
 export const fetchAuthLogin = async ({ code, id, password }: ILoginInfo) => {
-  return await fetch(`http://localhost:15004/api/auth/login/${code}`, {
+  return await fetch(`http://localhost:15004/api/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

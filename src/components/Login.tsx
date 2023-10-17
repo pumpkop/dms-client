@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   CheckboxInput,
-  ErrorText,
   Form,
   Input,
   Label,
@@ -14,28 +13,38 @@ import {
   Title,
   Wrapper,
 } from "./StyledAuth.ts";
-import { tokenStore } from "../store/tokenStore.ts";
 import { fetchAuthLogin } from "../fetch/fetchAuth.ts";
 import { useQuery } from "react-query";
+import { tokenStore } from "../store/tokenStore.ts";
 
+interface ILogin {
+  code: string;
+  id: string;
+  password: string;
+}
 export default function Login() {
-  const { removeToken } = tokenStore((state) => ({
-    removeToken: state.removeToken,
-  }));
-
-  useEffect(() => {
-    removeToken();
-  }, []);
-
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
   const [code, setCode] = useState("");
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
-  const [error, setError] = useState("");
+  // const [error, setError] = useState("");
+  const { changeToken } = tokenStore((state) => ({
+    changeToken: state.changeToken,
+    isLogin: state.isLogin,
+    setIsLogin: state.setIsLogin,
+  }));
+  const { refetch } = useQuery(
+    ["authLogin", id],
+    () => fetchAuthLogin({ code, id, password }),
+    {
+      retry: false,
+      enabled: false,
+    },
+  );
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
     const {
       target: { name, value },
     } = e;
@@ -52,35 +61,22 @@ export default function Login() {
     console.log(code, id, password);
   };
   const onClick = (e: React.MouseEvent<HTMLInputElement>) => {
-    console.log(e);
+    e.preventDefault();
     setRemember(!remember);
   };
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
-    if (isLoading || code || id === "" || password === "") return;
-    try {
-      setIsLoading(true);
-
-      useQuery(
-        ["authLogin", id],
-        () => fetchAuthLogin({ code, id, password }),
-        {
-          retry: false,
-          enabled: false,
-        },
-      );
-
-      navigate("/");
-    } catch (e) {
-      console.log(e);
-      const result = (e as Error).message;
-      setError(result);
-    } finally {
-      setIsLoading(false);
-    }
+    if (code === "" || id === "" || password === "") return;
+    const { isLoading, isError, data, error } = refetch();
+    console.log(data);
+    console.log(isError);
+    if (isLoading && isError) return;
     console.log(code, id, password);
   };
+
+  useEffect(() => {
+    changeToken("");
+  }, []);
   return (
     <Wrapper w="420px">
       <Title>
@@ -123,7 +119,7 @@ export default function Login() {
         </Remember>
         <SubmitInput type="submit" value="로그인" />
       </Form>
-      {error !== "" ? <ErrorText>{error}</ErrorText> : null}
+      {/*{error !== "" ? <ErrorText>{error}</ErrorText> : null}*/}
       <Switcher>
         <Link to="/join">회원가입</Link>
       </Switcher>
