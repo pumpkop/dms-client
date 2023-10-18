@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   CheckboxInput,
@@ -15,17 +15,15 @@ import {
   Wrapper,
 } from "./StyledAuth.ts";
 import styled from "styled-components";
-import useNiceAuth from "../hooks/useNiceAuth.ts";
-import { tokenStore } from "../store/tokenStore.ts";
-import { fetchAuthJoin } from "../fetch/fetchAuth.ts";
+import { useLoginStore } from "../store/useLoginStore.ts";
+import { useForm } from "react-hook-form";
 import { useQuery } from "react-query";
+import { fetchAuthJoin } from "../fetch/fetchAuth.ts";
+import useNiceAuth from "../hooks/useNiceAuth.ts";
 
 const NiceAuth = styled.div`
   display: flex;
   align-items: center;
-`;
-const NiceInput = styled(Input)`
-  flex: 0 0 420px;
 `;
 const NiceAuthButton = styled.button`
   border: 1px solid #ccc;
@@ -43,70 +41,72 @@ const Remembers = styled.div`
   width: 100%;
 `;
 
-const SubmitButton = styled.label`
-  width: 420px;
-  padding: 10px 20px;
-  border-radius: 5px;
-  border: 1px solid #bbb;
-  cursor: pointer;
-  background-color: #233f71;
-  color: #fff;
-  font-size: 20px;
-  height: 40px;
-  line-height: 20px;
-  text-align: center;
-`;
+interface IJoinForm {
+  code: string;
+  id: string;
+  password: string;
+  password_check: string;
+  phone: string;
+  email: string;
+  remember1: object;
+  remember2: object;
+}
+interface IToken {
+  accessToken: string;
+  refreshToken: string;
+}
+interface IJoinResponse {
+  code: string;
+  message: string;
+  token: IToken;
+}
 
 export default function Join() {
-  const [niceAuth] = useNiceAuth({ val: "", phone: "", name: "", birth: "" });
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [code, setCode] = useState("");
-  const [id, setId] = useState("");
-  const [password, setPassword] = useState("");
-  const [passwordCheck, setPasswordCheck] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [remember1, setRemember1] = useState(false);
-  const [remember2, setRemember2] = useState(false);
-  const [error, setError] = useState("");
-  const { changeToken } = tokenStore((state) => ({
-    changeToken: state.changeToken,
+  const [niceAuth] = useNiceAuth({ val: "", phone: "", name: "", birth: "" });
+  const {
+    register,
+    formState: { errors },
+    handleSubmit,
+    getValues,
+    setValue,
+  } = useForm<IJoinForm>({
+    mode: "onSubmit",
+  });
+
+  const { isLogin, setToken, setIsLogin } = useLoginStore((state) => ({
+    isLogin: state.isLogin,
+    setToken: state.setToken,
+    setIsLogin: state.setIsLogin,
   }));
 
+  const { code, id, password, phone, email } = getValues();
+  const { isError, error, refetch, remove } = useQuery(
+    ["fetchAuthJoin", id],
+    () => fetchAuthJoin({ code, id, password, phone, email }),
+    {
+      retry: false,
+      enabled: false,
+    },
+  );
+
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //공백 제거
+    e.preventDefault();
     const {
       target: { name, value },
     } = e;
-    let noWhiteSpace = value;
-    noWhiteSpace = noWhiteSpace.replace(/\s/, "");
-
-    if (name === "code") {
-      setCode(value);
-    } else if (name === "id") {
-      setId(noWhiteSpace);
-    } else if (name === "password") {
-      setPassword(noWhiteSpace);
-    } else if (name === "password-check") {
-      setPasswordCheck(noWhiteSpace);
-    } else if (name === "phone") {
-      setPhone(noWhiteSpace);
-    } else if (name === "email") {
-      setEmail(noWhiteSpace);
-    }
-    console.log(code, email, password);
+    setValue(name, value.replace(/\s/, ""));
   };
 
-  const onClick = (e: React.MouseEvent<HTMLInputElement>) => {
+  const onRemember = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {
-      currentTarget: { name },
+      target: { name, checked },
     } = e;
-    if (name === "remember1") {
-      setRemember1(!remember1);
-    } else if (name === "remember2") {
-      setRemember2(!remember2);
-    }
+    console.log(checked);
+    setValue(name, checked);
   };
+
   const onAuth = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     console.log(e);
@@ -117,55 +117,36 @@ export default function Join() {
       "width=490, height=800",
     ); //shop2 본인인증
   };
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
-    if (isLoading || code === "" || email === "" || password === "") return;
-    if (password !== passwordCheck) {
-      setError("비밀번호가 일치하지 않습니다.");
+  const onSubmit = async () => {
+    console.log("onSumbit");
+    const { isError, data } = await refetch();
+    console.log(isError);
+    if (isError || !data) {
+      remove();
       return;
     }
-    if (!(remember1 && remember2)) {
-      setError("약관에 모두 동의하셔야 합니다.");
-      return;
-    }
-    if (niceAuth.phone === "") {
-      setError("본인인증을 진행하셔야 합니다.");
-      return;
-    }
-    if (niceAuth.phone !== phone) {
-      setError("본인인증이 일치하지 않습니다.");
-      return;
-    }
-    try {
-      setIsLoading(true);
-      const { isLoading, isError, data, error } = useQuery(
-        ["authLogin", id],
-        () => fetchAuthJoin({ code, id, password, phone, email }),
-        {
-          retry: false,
-          enabled: !!id,
-        },
-      );
-
+    const {
+      code,
+      token: { accessToken },
+    }: IJoinResponse = data.data;
+    if (code == "200" && accessToken !== "") {
+      setIsLogin(true);
+      setToken(accessToken);
       navigate("/");
-    } catch (e) {
-      console.log(e);
-      const result = (e as Error).message;
-      setError(result);
-    } finally {
-      setIsLoading(false);
     }
-    console.log(email, password);
+    console.log(data);
   };
 
   useEffect(() => {
-    changeToken("");
+    if (isLogin) {
+      //로그인 상태에서 url 접속시 로그인 해제
+      setIsLogin(false);
+      setToken("");
+    }
   }, []);
 
-  // removeToken();
   return (
-    <Wrapper w={"800px"}>
+    <Wrapper width={"800px"}>
       <Title>
         <Logo
           src="https://softcity.blob.core.windows.net/public/images/logo_qna_logo.png"
@@ -173,88 +154,152 @@ export default function Join() {
         />
         <Text>회원 정보 입력</Text>
       </Title>
-      <Form onSubmit={onSubmit} w="420px">
+      <Form onSubmit={handleSubmit(onSubmit)} width="420px">
         <Input
-          w="420px"
-          onChange={onChange}
-          name="code"
-          value={code}
+          {...register("code", {
+            onChange: onChange,
+            required: "딜러코드를 입력해 주세요",
+          })}
+          width="420px"
           placeholder="딜러코드"
-          required
+          maxLength={50}
         />
+        {errors.code ? <ErrorText>{errors.code.message}</ErrorText> : null}
         <Input
-          w="420px"
-          onChange={onChange}
-          name="id"
-          value={id}
-          placeholder="아이디 (담당자명)"
-          required
+          {...register("id", {
+            onChange: onChange,
+            required: "아이디를 입력해 주세요",
+          })}
+          width="420px"
+          placeholder="아이디"
+          maxLength={50}
         />
+        {errors.id ? <ErrorText>{errors.id.message}</ErrorText> : null}
         <Input
-          w="420px"
-          onChange={onChange}
+          {...register("password", {
+            onChange: onChange,
+            required: "비밀번호를 입력해 주세요",
+          })}
           type="password"
-          name="password"
-          value={password}
+          width="420px"
           placeholder="비밀번호"
-          required
+          maxLength={50}
         />
+        {errors.password ? (
+          <ErrorText>{errors.password.message}</ErrorText>
+        ) : null}
         <Input
-          w="420px"
-          onChange={onChange}
+          {...register("password_check", {
+            onChange: onChange,
+            required: "확인용 비밀번호를 입력해 주세요",
+            validate: (password_check) => {
+              if (getValues("password") !== password_check) {
+                return "비밀번호가 일치하지 않습니다";
+              }
+            },
+          })}
           type="password"
-          name="password-check"
-          value={passwordCheck}
+          width="420px"
           placeholder="비밀번호 확인"
-          required
+          maxLength={50}
         />
+        {errors.password_check ? (
+          <ErrorText>{errors.password_check.message}</ErrorText>
+        ) : null}
         <NiceAuth>
-          <NiceInput
-            onChange={onChange}
-            name="phone"
-            value={phone}
+          <Input
+            {...register("phone", {
+              onChange: onChange,
+              required: "휴대폰번호를 입력해 주세요",
+              // pattern: {
+              //   value: /^\d{3}-\d{3,4}-\d{4}$/,
+              //   message: "휴대폰 형식에 맞게 입력해주세요",
+              // },
+              validate: (phone) => {
+                // if (niceAuth.phone === "") {
+                //   return "본인인증을 진행하셔야 합니다.";
+                // }
+                // if (niceAuth.phone !== phone) {
+                //   return "본인인증이 일치하지 않습니다.";
+                // }
+              },
+            })}
+            width="420px"
             placeholder="휴대폰번호"
-            required
+            maxLength={13}
           />
           <NiceAuthButton onClick={onAuth}>본인인증</NiceAuthButton>
         </NiceAuth>
+        {errors.phone ? <ErrorText>{errors.phone.message}</ErrorText> : null}
         <Input
-          onChange={onChange}
-          type="email"
-          name="email"
-          value={email}
+          {...register("email", {
+            onChange: onChange,
+            required: "이메일을 입력해 주세요",
+            pattern: {
+              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+              message: "이메일을 형식에 맞게 입력해주세요.",
+            },
+          })}
+          type="text"
+          width="420px"
           placeholder="이메일"
-          required
+          maxLength={70}
         />
-        <SubmitInput type="submit" id="submit" style={{ display: "none" }} />
+        {errors.email ? <ErrorText>{errors.email.message}</ErrorText> : null}
+        <Remembers>
+          <Remember mb="5px">
+            <CheckboxInput
+              {...register("remember1", {
+                onChange: onRemember,
+                required: "이용약관에 동의하셔야 서비스 이용이 가능합니다",
+                validate: (remember) => {
+                  if (!remember) {
+                    return "이용약관에 동의하셔야 서비스 이용이 가능합니다";
+                  }
+                },
+              })}
+              id="remember1"
+              type="checkbox"
+              defaultChecked={false}
+            />
+            <Label htmlFor="remember1" flex="0 0 770px">
+              (필수) 회원 가입 시 등록 정보가 본사와 해당 딜러 관리자에게
+              전송되며, 승인 후 로그인 가능합니다
+            </Label>
+          </Remember>
+          {errors.remember1 ? (
+            <ErrorText>{errors.remember1.message}</ErrorText>
+          ) : null}
+          <Remember>
+            <CheckboxInput
+              {...register("remember2", {
+                onChange: onRemember,
+                required: "개인정보약관에 동의하셔야 서비스 이용이 가능합니다",
+                validate: (remember) => {
+                  if (!remember) {
+                    return "이용약관에 동의하셔야 서비스 이용이 가능합니다";
+                  }
+                },
+              })}
+              id="remember2"
+              type="checkbox"
+              defaultChecked={false}
+            />
+            <Label htmlFor="remember2" flex="0 0 770px">
+              (필수) 개인정보 약관 동의
+            </Label>
+          </Remember>
+          {errors.remember2 ? (
+            <ErrorText>{errors.remember2.message}</ErrorText>
+          ) : null}
+        </Remembers>
+        <SubmitInput type="submit" value="회원가입" />
       </Form>
-      <Remembers>
-        <Remember mb="5px">
-          <CheckboxInput
-            onClick={onClick}
-            type="checkbox"
-            id="remember1"
-            name="remember1"
-          />
-          <Label htmlFor="remember1" flex="0 0 770px">
-            (필수) 회원 가입 시 등록 정보가 본사와 해당 딜러 관리자에게
-            전송되며, 승인 후 로그인 가능합니다
-          </Label>
-        </Remember>
-        <Remember mb="20px">
-          <CheckboxInput
-            onClick={onClick}
-            type="checkbox"
-            id="remember2"
-            name="remember2"
-          />
-          <Label htmlFor="remember2" flex="0 0 770px">
-            (필수) 개인정보 약관 동의
-          </Label>
-        </Remember>
-      </Remembers>
-      <SubmitButton htmlFor="submit">가입하기</SubmitButton>
-      {error !== "" ? <ErrorText>{error}</ErrorText> : null}
+      {isError ? (
+        <ErrorText>
+          {error.response.data.code}, {error.response.data.message}
+        </ErrorText>
+      ) : null}
       <Switcher>
         <Link to="/login">로그인</Link>
       </Switcher>

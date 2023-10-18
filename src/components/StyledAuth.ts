@@ -1,7 +1,7 @@
-import styled from "styled-components"
+import styled from "styled-components";
 
 interface WidthProps {
-    w?: string
+  width?: string;
 }
 export const Wrapper = styled.div<WidthProps>`
   display: flex;
@@ -9,9 +9,9 @@ export const Wrapper = styled.div<WidthProps>`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: ${props => props.w ? props.w : '100%'};
+  width: ${(props) => (props.width ? props.width : "100%")};
   padding: 50px 0;
-`
+`;
 export const Title = styled.h1`
   display: flex;
   flex-direction: row;
@@ -19,41 +19,41 @@ export const Title = styled.h1`
   align-items: center;
   gap: 0 10px;
   font-size: 25px;
-`
-export const Logo = styled.img`
-`
+`;
+export const Logo = styled.img``;
 export const Form = styled.form<WidthProps>`
   margin-top: 50px;
   margin-bottom: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: ${props => props.w ? props.w : '100%'};
-`
+  width: ${(props) => (props.width ? props.width : "100%")};
+`;
 export const Input = styled.input<WidthProps>`
   padding: 10px 20px;
   border-radius: 5px;
   border: 1px solid #bbb;
-  width: ${props => props.w ? props.w : '100%'};
+  width: ${(props) => (props.width ? props.width : "100%")};
   font-size: 16px;
   outline: none;
 
-  &:focus, &:active {
-    border-color: #233F71;
+  &:focus,
+  &:active {
+    border-color: #233f71;
   }
 
-  &[name=code] {
+  &[name="code"] {
     margin-bottom: 20px;
   }
-`
+`;
 
 interface SubmitInputProps {
-    display : string
+  display: string;
 }
 export const SubmitInput = styled(Input)<SubmitInputProps>`
-  display: ${props => props.display || 'initial'};
+  display: ${(props) => props.display || "initial"};
   cursor: pointer;
-  background-color: #233F71;
+  background-color: #233f71;
   color: #fff;
   font-size: 20px;
   height: 40px;
@@ -62,44 +62,43 @@ export const SubmitInput = styled(Input)<SubmitInputProps>`
   &:hover {
     opacity: 0.8;
   }
-`
+`;
 export const CheckboxInput = styled(Input)`
   display: inline;
   flex: 0 0 30px;
   width: 30px;
-`
+`;
 export const ErrorText = styled.span`
-  margin-top: 15px;
+  //margin-top: 15px;
   font-weight: 600;
   color: tomato;
-`
+`;
 
 export const Switcher = styled.span`
   margin-top: 20px;
   a {
     color: #bbb;
   }
-`
-export const Text = styled.span`
-`
+`;
+export const Text = styled.span``;
 
 interface LabelProps {
-    flex? : string
+  flex?: string;
 }
 export const Label = styled.label<LabelProps>`
   width: 100px;
   cursor: pointer;
-  flex : ${props => props.flex|| 'initial'};
-`
+  flex: ${(props) => props.flex || "initial"};
+`;
 
 interface RememberProps {
-    mt? : string,
-    mb? : string,
+  mt?: string;
+  mb?: string;
 }
 export const Remember = styled.div<RememberProps>`
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  margin-top: ${props => props.mt || 0 };
-  margin-bottom: ${props => props.mb || 0 };
-`
+  margin-top: ${(props) => props.mt || 0};
+  margin-bottom: ${(props) => props.mb || 0};
+`;
