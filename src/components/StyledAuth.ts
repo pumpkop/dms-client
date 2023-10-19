@@ -63,7 +63,7 @@ export const SubmitInput = styled(Input)<SubmitInputProps>`
     opacity: 0.8;
   }
 `;
-export const CheckboxInput = styled(Input)`
+export const Checkbox = styled(Input)`
   display: inline;
   flex: 0 0 30px;
   width: 30px;

@@ -11,7 +11,7 @@ export const fetchAuthState = async (token: string) => {
     },
     timeout: 5000,
     responseType: "json",
-  }).then((response) => response);
+  }).then((response) => response.data);
 };
 
 interface ILoginInfo {
@@ -32,9 +32,9 @@ export const fetchAuthLogin = async ({ code, id, password }: ILoginInfo) => {
       dealerId: id,
       dealerPw: password,
     }),
-    timeout: 5000,
+    timeout: 10000,
     responseType: "json",
-  }).then((response) => response);
+  }).then((response) => response.data);
 };
 
 interface IJoinInfo {
@@ -67,5 +67,5 @@ export const fetchAuthJoin = async ({
     }),
     timeout: 5000,
     responseType: "json",
-  }).then((response) => response);
+  }).then((response) => response.data);
 };

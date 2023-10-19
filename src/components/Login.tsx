@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  CheckboxInput,
+  Checkbox,
   ErrorText,
   Form,
   Input,
@@ -17,12 +17,14 @@ import {
 import { fetchAuthLogin } from "../fetch/fetchAuth.ts";
 import { useQuery } from "react-query";
 import { useLoginStore } from "../store/useLoginStore.ts";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
+import { AxiosError } from "axios";
 
 interface ILoginForm {
   code: string;
   id: string;
   password: string;
+  extraError: string;
 }
 interface IToken {
   accessToken: string;
@@ -32,6 +34,7 @@ interface ILoginResponse {
   code: string;
   message: string;
   token: IToken;
+  extraError: string;
 }
 export default function Login() {
   const navigate = useNavigate();
@@ -41,6 +44,7 @@ export default function Login() {
     handleSubmit,
     getValues,
     setValue,
+    control,
   } = useForm<ILoginForm>({
     mode: "onSubmit",
     defaultValues: {
@@ -65,8 +69,10 @@ export default function Login() {
     isRemember: state.isRemember,
     setRemember: state.setRemember,
   }));
-  const { code, id, password } = getValues();
-  const { isError, error, refetch, remove } = useQuery(
+  const { code, id, password, extraError } = useWatch({
+    control,
+  });
+  const { refetch, remove } = useQuery(
     ["authLogin", id],
     () => fetchAuthLogin({ code, id, password }),
     {
@@ -78,10 +84,10 @@ export default function Login() {
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     //공백 제거
     e.preventDefault();
-    const {
-      target: { name, value },
-    } = e;
-    setValue(name, value.replace(/\s/, ""));
+    const { name, value } = e.target;
+    if (name === "code" || name === "id" || name === "password") {
+      setValue(name, value.replace(/\s/, ""));
+    }
   };
   const onRemember = () => {
     //아이디 저장
@@ -90,18 +96,22 @@ export default function Login() {
     setRemember(!isRemember);
   };
   const onSubmit = async () => {
-    console.log("onSumbit");
-
     //로그인 전송
-    const { isError, data } = await refetch();
-    if (isError || !data) {
-      remove();
-      return;
+    const { isError, error, data } = await refetch();
+    console.log(data, isError, error);
+
+    if (isError) {
+      if (error instanceof AxiosError) {
+        remove();
+        setValue("extraError", error.message);
+        return;
+      }
     }
+
     const {
       code,
       token: { accessToken },
-    }: ILoginResponse = data.data;
+    }: ILoginResponse = data;
     if (code == "200" && accessToken !== "") {
       setIsLogin(true);
       setToken(accessToken);
@@ -137,7 +147,6 @@ export default function Login() {
           maxLength={50}
         />
         {errors.code ? <ErrorText>{errors.code.message}</ErrorText> : null}
-
         <Input
           {...register("id", {
             onChange: onChange,
@@ -148,7 +157,6 @@ export default function Login() {
           maxLength={50}
         />
         {errors.id ? <ErrorText>{errors.id.message}</ErrorText> : null}
-
         <Input
           {...register("password", {
             onChange: onChange,
@@ -166,7 +174,7 @@ export default function Login() {
         ) : null}
 
         <Remember mt="20px">
-          <CheckboxInput
+          <Checkbox
             onChange={onRemember}
             type="checkbox"
             id="remember"
@@ -177,11 +185,7 @@ export default function Login() {
         </Remember>
         <SubmitInput type="submit" value="로그인" />
       </Form>
-      {isError ? (
-        <ErrorText>
-          {error.response.data.code}, {error.response.data.message}
-        </ErrorText>
-      ) : null}
+      {extraError ? <ErrorText>{extraError}</ErrorText> : null}
       <Switcher>
         <Link to="/join">회원가입</Link>
       </Switcher>

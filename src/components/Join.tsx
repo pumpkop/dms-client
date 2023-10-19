@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  CheckboxInput,
+  Checkbox,
   ErrorText,
   Form,
   Input,
@@ -16,10 +16,11 @@ import {
 } from "./StyledAuth.ts";
 import styled from "styled-components";
 import { useLoginStore } from "../store/useLoginStore.ts";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useQuery } from "react-query";
 import { fetchAuthJoin } from "../fetch/fetchAuth.ts";
 import useNiceAuth from "../hooks/useNiceAuth.ts";
+import { AxiosError } from "axios";
 
 const NiceAuth = styled.div`
   display: flex;
@@ -48,8 +49,9 @@ interface IJoinForm {
   password_check: string;
   phone: string;
   email: string;
-  remember1: object;
-  remember2: object;
+  remember1: boolean;
+  remember2: boolean;
+  extraError: string;
 }
 interface IToken {
   accessToken: string;
@@ -70,8 +72,16 @@ export default function Join() {
     handleSubmit,
     getValues,
     setValue,
+    control,
   } = useForm<IJoinForm>({
     mode: "onSubmit",
+    defaultValues: {
+      code: "",
+      id: "",
+      password: "",
+      phone: "",
+      email: "",
+    },
   });
 
   const { isLogin, setToken, setIsLogin } = useLoginStore((state) => ({
@@ -79,9 +89,11 @@ export default function Join() {
     setToken: state.setToken,
     setIsLogin: state.setIsLogin,
   }));
+  const { code, id, password, phone, email, extraError } = useWatch({
+    control,
+  });
 
-  const { code, id, password, phone, email } = getValues();
-  const { isError, error, refetch, remove } = useQuery(
+  const { refetch, remove } = useQuery(
     ["fetchAuthJoin", id],
     () => fetchAuthJoin({ code, id, password, phone, email }),
     {
@@ -93,18 +105,26 @@ export default function Join() {
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     //공백 제거
     e.preventDefault();
-    const {
-      target: { name, value },
-    } = e;
-    setValue(name, value.replace(/\s/, ""));
+    const { name, value } = e.target;
+    if (
+      name === "code" ||
+      name === "id" ||
+      name === "password" ||
+      name === "password_check" ||
+      name === "phone" ||
+      name === "email"
+    ) {
+      setValue(name, value.replace(/\s/, ""));
+    }
   };
 
   const onRemember = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {
       target: { name, checked },
     } = e;
-    console.log(checked);
-    setValue(name, checked);
+    if (name === "remember1" || name === "remember2") {
+      setValue(name, checked);
+    }
   };
 
   const onAuth = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -118,23 +138,22 @@ export default function Join() {
     ); //shop2 본인인증
   };
   const onSubmit = async () => {
-    console.log("onSumbit");
-    const { isError, data } = await refetch();
-    console.log(isError);
-    if (isError || !data) {
-      remove();
-      return;
-    }
-    const {
-      code,
-      token: { accessToken },
-    }: IJoinResponse = data.data;
-    if (code == "200" && accessToken !== "") {
-      setIsLogin(true);
-      setToken(accessToken);
-      navigate("/");
+    const { isError, error, data } = await refetch();
+    if (isError) {
+      if (error instanceof AxiosError) {
+        remove();
+        setValue("extraError", error.message);
+        return;
+      }
     }
     console.log(data);
+    const { code }: IJoinResponse = data;
+    if (code == "200") {
+      setIsLogin(true);
+      setValue("extraError", "");
+      // setToken(accessToken);
+      navigate("/login");
+    }
   };
 
   useEffect(() => {
@@ -235,10 +254,10 @@ export default function Join() {
           {...register("email", {
             onChange: onChange,
             required: "이메일을 입력해 주세요",
-            pattern: {
-              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-              message: "이메일을 형식에 맞게 입력해주세요.",
-            },
+            // pattern: {
+            //   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+            //   message: "이메일을 형식에 맞게 입력해주세요.",
+            // },
           })}
           type="text"
           width="420px"
@@ -248,7 +267,7 @@ export default function Join() {
         {errors.email ? <ErrorText>{errors.email.message}</ErrorText> : null}
         <Remembers>
           <Remember mb="5px">
-            <CheckboxInput
+            <Checkbox
               {...register("remember1", {
                 onChange: onRemember,
                 required: "이용약관에 동의하셔야 서비스 이용이 가능합니다",
@@ -271,7 +290,7 @@ export default function Join() {
             <ErrorText>{errors.remember1.message}</ErrorText>
           ) : null}
           <Remember>
-            <CheckboxInput
+            <Checkbox
               {...register("remember2", {
                 onChange: onRemember,
                 required: "개인정보약관에 동의하셔야 서비스 이용이 가능합니다",
@@ -295,11 +314,7 @@ export default function Join() {
         </Remembers>
         <SubmitInput type="submit" value="회원가입" />
       </Form>
-      {isError ? (
-        <ErrorText>
-          {error.response.data.code}, {error.response.data.message}
-        </ErrorText>
-      ) : null}
+      {extraError ? <ErrorText>{extraError}</ErrorText> : null}
       <Switcher>
         <Link to="/login">로그인</Link>
       </Switcher>

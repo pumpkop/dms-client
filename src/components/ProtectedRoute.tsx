@@ -19,7 +19,7 @@ export default function ProtectedRoute({ children }: IProps) {
     isLogin: state.isLogin,
     setIsLogin: state.setIsLogin,
   }));
-  const { isLoading, isError, data } = useQuery(
+  const { isLoading, isError } = useQuery(
     ["authState", token],
     () => fetchAuthState(token),
     {
@@ -28,6 +28,7 @@ export default function ProtectedRoute({ children }: IProps) {
     },
   );
   useEffect(() => {
+    console.log(token);
     if (token === "") navigate("/login");
     if (isError) {
       console.log("isError !!", isError);
