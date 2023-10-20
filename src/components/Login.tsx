@@ -17,7 +17,7 @@ import {
 import { fetchAuthLogin } from "../fetch/fetchAuth.ts";
 import { useQuery } from "react-query";
 import { useLoginStore } from "../store/useLoginStore.ts";
-import { useForm, useWatch } from "react-hook-form";
+import { SubmitHandler, useForm, useWatch } from "react-hook-form";
 import { AxiosError } from "axios";
 
 interface ILoginForm {
@@ -39,20 +39,6 @@ interface ILoginResponse {
 export default function Login() {
   const navigate = useNavigate();
   const {
-    register,
-    formState: { errors },
-    handleSubmit,
-    getValues,
-    setValue,
-    control,
-  } = useForm<ILoginForm>({
-    mode: "onSubmit",
-    defaultValues: {
-      code: "",
-      password: "",
-    },
-  });
-  const {
     isLogin,
     setToken,
     setIsLogin,
@@ -69,8 +55,24 @@ export default function Login() {
     isRemember: state.isRemember,
     setRemember: state.setRemember,
   }));
-  const { code, id, password, extraError } = useWatch({
+  const {
+    register,
+    formState: { errors },
+    handleSubmit,
+    getValues,
+    setValue,
     control,
+  } = useForm<ILoginForm>({
+    mode: "onSubmit",
+    defaultValues: {
+      code: "",
+      password: "",
+    },
+  });
+
+  const [code, id, password, extraError] = useWatch({
+    control,
+    name: ["code", "id", "password", "extraError"],
   });
   const { refetch, remove } = useQuery(
     ["authLogin", id],
@@ -95,10 +97,11 @@ export default function Login() {
     !isRemember ? setLoginId(id) : setLoginId("");
     setRemember(!isRemember);
   };
-  const onSubmit = async () => {
+  const onSubmit: SubmitHandler<ILoginForm> = async () => {
     //로그인 전송
+
     const { isError, error, data } = await refetch();
-    console.log(data, isError, error);
+    console.log(data, isError);
 
     if (isError) {
       if (error instanceof AxiosError) {
@@ -117,7 +120,6 @@ export default function Login() {
       setToken(accessToken);
       navigate("/");
     }
-    console.log(data);
   };
 
   useEffect(() => {

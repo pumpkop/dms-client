@@ -1,44 +1,110 @@
+import { Wrapper } from "./StyledAuth.ts";
+import Grid from "@toast-ui/react-grid";
+
 export function OrderSheet() {
-    return (
-        <>
-            {'OrderSheet'}
-        </>
-        // <Sheet>
-        //     <Cell>
-        //         <Label>제품 구분</Label>
-        //         <Text>클라우드 신규 가입 ( 월납 ) </Text>
-        //     </Cell>
-        //     <Cell>
-        //         <Label>거래처</Label>
-        //         <MemberSearch />
-        //         <Label>사업자번호</Label>
-        //         <Input name='companyNo' required />
-        //     </Cell>
-        //     <Cell>
-        //         <Label>PC 유저수</Label>
-        //         <Input name='pcUser' required />
-        //     </Cell>
-        //     <Cell>
-        //         <Label>APP 유저수</Label>
-        //         <Input name='appUser' required />
-        //     </Cell>
-        //     <Cell>
-        //         <Label>정상가</Label>
-        //         <Input name='price' required />
-        //     </Cell>
-        //     <Cell>
-        //         <Label>딜러가</Label>
-        //         <Input name='dealerPrice' required />
-        //     </Cell>
-        //     <Cell>
-        //         <Label>클라우드 ID</Label>
-        //         <Input name='cloudId' required />
-        //     </Cell>
-        //     <Cell>
-        //         <Label>클라우드 PW</Label>
-        //         <Input name='cloudPw' required />
-        //     </Cell>
-        //     <Input type='submit' value='신청하기' />
-        // </Sheet>
-    )
+  const data = [
+    {
+      orderDate: "2023.10.20 09:31:15",
+      gubun: "가입(월납)",
+      company: "가나상사",
+      companyNo: "111-12-12345",
+      pcUserCount: "2",
+      appUserCount: "2",
+      price: "44,000",
+      outputDate: "2023.11.01",
+      endDate: "2099.12.31",
+      state: "신청완료",
+      sendBtn: "전송하기",
+      detailBtn: "보기",
+    },
+    {
+      orderDate: "2023.10.20 09:31:15",
+      gubun: "가입(월납)",
+      company: "가나상사",
+      companyNo: "111-12-12345",
+      pcUserCount: "2",
+      appUserCount: "2",
+      price: "44,000",
+      outputDate: "2023.11.01",
+      endDate: "2099.12.31",
+      state: "신청완료",
+      sendBtn: "전송하기",
+      detailBtn: "보기",
+    },
+    {
+      orderDate: "2023.10.20 09:31:15",
+      gubun: "가입(월납)",
+      company: "가나상사",
+      companyNo: "111-12-12345",
+      pcUserCount: "2",
+      appUserCount: "2",
+      price: "44,000",
+      outputDate: "2023.11.01",
+      endDate: "2099.12.31",
+      state: "신청완료",
+      sendBtn: "전송하기",
+      detailBtn: "보기",
+    },
+    {
+      orderDate: "2023.10.20 09:31:15",
+      gubun: "가입(월납)",
+      company: "가나상사",
+      companyNo: "111-12-12345",
+      pcUserCount: "2",
+      appUserCount: "2",
+      price: "44,000",
+      outputDate: "2023.11.01",
+      endDate: "2099.12.31",
+      state: "신청완료",
+      sendBtn: "전송하기",
+      detailBtn: "보기",
+    },
+    {
+      orderDate: "2023.10.20 09:31:15",
+      gubun: "가입(월납)",
+      company: "가나상사",
+      companyNo: "111-12-12345",
+      pcUserCount: "2",
+      appUserCount: "2",
+      price: "44,000",
+      outputDate: "2023.11.01",
+      endDate: "2099.12.31",
+      state: "신청완료",
+      sendBtn: "",
+      detailBtn: "보기",
+    },
+  ];
+
+  const columns = [
+    { name: "orderDate", header: "신청일자" },
+    { name: "gubun", header: "구분" },
+    { name: "company", header: "상호" },
+    { name: "companyNo", header: "사업자번호" },
+    { name: "pcUserCount", header: "PC 유저수" },
+    { name: "appUserCount", header: "앱 유저수" },
+    { name: "price", header: "금액" },
+    { name: "outputDate", header: "출금시작일" },
+    { name: "endDate", header: "종료(만기)일" },
+    { name: "state", header: "진행상태" },
+    { name: "sendBtn", header: "신청서" },
+    { name: "detailBtn", header: "상세보기" },
+  ];
+  const onClick = () => {
+    console.log("onClick");
+  };
+  return (
+    <Wrapper>
+      <Grid
+        data={data}
+        columns={columns}
+        rowHeight={25}
+        width={1000}
+        bodyHeight={500}
+        heightResizable={true}
+        rowHeaders={["rowNum"]}
+        usageStatistics={false}
+        onClick={onClick}
+      />
+    </Wrapper>
+  );
 }

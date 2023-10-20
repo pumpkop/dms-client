@@ -15,12 +15,12 @@ import {
   Wrapper,
 } from "./StyledAuth.ts";
 import styled from "styled-components";
-import { useLoginStore } from "../store/useLoginStore.ts";
-import { useForm, useWatch } from "react-hook-form";
+import { SubmitHandler, useForm, useWatch } from "react-hook-form";
 import { useQuery } from "react-query";
 import { fetchAuthJoin } from "../fetch/fetchAuth.ts";
 import useNiceAuth from "../hooks/useNiceAuth.ts";
 import { AxiosError } from "axios";
+import { useLoginStore } from "../store/useLoginStore.ts";
 
 const NiceAuth = styled.div`
   display: flex;
@@ -66,6 +66,11 @@ interface IJoinResponse {
 export default function Join() {
   const navigate = useNavigate();
   const [niceAuth] = useNiceAuth({ val: "", phone: "", name: "", birth: "" });
+  const { isLogin, setToken, setIsLogin } = useLoginStore((state) => ({
+    isLogin: state.isLogin,
+    setToken: state.setToken,
+    setIsLogin: state.setIsLogin,
+  }));
   const {
     register,
     formState: { errors },
@@ -84,13 +89,9 @@ export default function Join() {
     },
   });
 
-  const { isLogin, setToken, setIsLogin } = useLoginStore((state) => ({
-    isLogin: state.isLogin,
-    setToken: state.setToken,
-    setIsLogin: state.setIsLogin,
-  }));
-  const { code, id, password, phone, email, extraError } = useWatch({
+  const [code, id, password, phone, email, extraError] = useWatch({
     control,
+    name: ["code", "id", "password", "phone", "email", "extraError"],
   });
 
   const { refetch, remove } = useQuery(
@@ -137,7 +138,7 @@ export default function Join() {
       "width=490, height=800",
     ); //shop2 본인인증
   };
-  const onSubmit = async () => {
+  const onSubmit: SubmitHandler<IJoinForm> = async () => {
     const { isError, error, data } = await refetch();
     if (isError) {
       if (error instanceof AxiosError) {
@@ -165,7 +166,7 @@ export default function Join() {
   }, []);
 
   return (
-    <Wrapper width={"800px"}>
+    <Wrapper width="800px">
       <Title>
         <Logo
           src="https://softcity.blob.core.windows.net/public/images/logo_qna_logo.png"
@@ -235,12 +236,12 @@ export default function Join() {
               //   message: "휴대폰 형식에 맞게 입력해주세요",
               // },
               validate: (phone) => {
-                // if (niceAuth.phone === "") {
-                //   return "본인인증을 진행하셔야 합니다.";
-                // }
-                // if (niceAuth.phone !== phone) {
-                //   return "본인인증이 일치하지 않습니다.";
-                // }
+                if (niceAuth.phone === "") {
+                  return "본인인증을 진행하셔야 합니다.";
+                }
+                if (niceAuth.phone !== phone) {
+                  return "본인인증이 일치하지 않습니다.";
+                }
               },
             })}
             width="420px"
