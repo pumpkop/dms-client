@@ -5,12 +5,12 @@ import Members from "../components/Members.tsx";
 import { ShowError } from "../components/ShowError.tsx";
 import Login from "../components/Login.tsx";
 import Join from "../components/Join.tsx";
-import { OrderSheet } from "../components/OrderSheet.tsx";
+import { OrderList } from "../components/OrderList.tsx";
 import { Notice } from "../components/Notice.tsx";
 import { Qna } from "../components/Qna.tsx";
-import { OrderList } from "../components/OrderList.tsx";
 import { ProductList } from "../components/ProductList.tsx";
 import { LedgerList } from "../components/LedgerList.tsx";
+import { OrderSheet } from "../components/OrderSheet.tsx";
 
 const router = createBrowserRouter([
   {
@@ -26,12 +26,12 @@ const router = createBrowserRouter([
       //   element: <DashBoard />,
       // },
       {
-        // path: "/register",
-        path: "",
+        path: "/register",
         element: <OrderSheet />,
       },
       {
-        path: "/orderList",
+        // path: "/orderList",
+        path: "",
         element: <OrderList />,
       },
       {

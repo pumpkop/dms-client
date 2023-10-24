@@ -23,3 +23,22 @@
 
 /*@tailwind components;*/
 /*@tailwind utilities;*/
+
+.red {
+    background-color: indianred !important;
+}
+.green {
+    background-color: darkseagreen !important;
+}
+.blue {
+    background-color: cornflowerblue !important;
+}
+.gray{
+    background-color: #ccc !important;
+}
+.sendBtn{
+    cursor: pointer;
+}
+.detailBtn{
+    cursor: pointer;
+}
